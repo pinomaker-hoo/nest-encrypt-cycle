@@ -24,10 +24,17 @@ npm install nest-encrypt-cycle
 
 ```typescript
 import { Module } from '@nestjs/common';
-import { EncryptModule } from 'nest-encrypt-cycle';
+import { EncryptModule, EncryptInterceptor } from 'nest-encrypt-cycle';
+import { APP_INTERCEPTOR } from '@nestjs/core';
 
 @Module({
   imports: [EncryptModule.register({ key: 'your-secret-key', whiteList: [] })],
+  providers: [
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: EncryptInterceptor,
+    },
+  ],
 })
 export class AppModule {}
 ```
