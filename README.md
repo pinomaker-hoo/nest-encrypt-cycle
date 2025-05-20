@@ -27,9 +27,22 @@ import { Module } from '@nestjs/common';
 import { EncryptModule } from 'pinomaker-nest-encrypt';
 
 @Module({
-  imports: [EncryptModule.register({ secretKey: 'your-secret-key' })],
+  imports: [EncryptModule.register({ key: 'your-secret-key', whiteList: [] })],
 })
 export class AppModule {}
+```
+
+```typescript
+export interface EncryptOptions {
+  // Hash Key
+  key: string;
+
+  // API White List No Encrypt
+  whiteList: {
+    method: string;
+    pathname: string;
+  }[];
+}
 ```
 
 2. Use the interceptor globally or on specific routes
@@ -39,30 +52,15 @@ Globally
 ```typescript
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { EncryptInterceptor } from 'pinomaker-nest-encrypt';
+import { EncryptInterceptor } from 'nest-encrypt-cycle';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  app.useGlobalInterceptors(new EncryptInterceptor('your-secret-key'));
+  const encryptService = app.get(EncryptService);
+  app.useGlobalInterceptors(new EncryptInterceptor(encryptService));
   await app.listen(3000);
 }
 bootstrap();
-```
-
-Per-route or controller
-
-```typescript
-import { Controller, UseInterceptors, Post, Body } from '@nestjs/common';
-import { EncryptInterceptor } from 'pinomaker-nest-encrypt';
-
-@Controller('secure')
-@UseInterceptors(new EncryptInterceptor('your-secret-key'))
-export class SecureController {
-  @Post()
-  async secureEndpoint(@Body() data: any) {
-    // Your logic here
-  }
-}
 ```
 
 ## Configuration

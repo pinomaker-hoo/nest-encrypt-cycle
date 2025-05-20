@@ -1,33 +1,44 @@
 import { Injectable } from '@nestjs/common';
-import * as crypto from 'crypto';
+import * as crypto from 'crypto-js';
 import { EncryptOptions } from './types';
 
 @Injectable()
 export class EncryptService {
   constructor(private readonly options: EncryptOptions) {}
 
-  encrypt(data: string): string {
-    const cipher = crypto.createCipheriv(
-      'aes-256-cbc',
-      this.options.key,
-      this.options.iv,
-    );
-    return Buffer.concat([
-      cipher.update(data, 'utf8'),
-      cipher.final(),
-    ]).toString('base64');
+  encrypt(data: string, pathname: string, method: string): string {
+    if (
+      this.options.whiteList.some(
+        (i) => i.pathname === pathname && i.method === method,
+      )
+    ) {
+      return data;
+    }
+    return crypto.AES.encrypt(data, crypto.enc.Utf8.parse(this.options.key), {
+      iv: crypto.enc.Utf8.parse(this.options.key),
+      padding: crypto.pad.Pkcs7,
+      mode: crypto.mode.CBC,
+    }).toString();
   }
 
-  decrypt(base64: string): string {
-    const encrypted = Buffer.from(base64, 'base64');
-    const decipher = crypto.createDecipheriv(
-      'aes-256-cbc',
-      this.options.key,
-      this.options.iv,
+  decrypt(data: string, pathname: string, method: string): string {
+    if (
+      this.options.whiteList.some(
+        (i) => i.pathname === pathname && i.method === method,
+      )
+    ) {
+      return data;
+    }
+
+    const decipher = crypto.AES.decrypt(
+      data,
+      crypto.enc.Utf8.parse(this.options.key),
+      {
+        iv: crypto.enc.Utf8.parse(this.options.key),
+        padding: crypto.pad.Pkcs7,
+        mode: crypto.mode.CBC,
+      },
     );
-    return Buffer.concat([
-      decipher.update(encrypted),
-      decipher.final(),
-    ]).toString('utf8');
+    return decipher.toString(crypto.enc.Utf8);
   }
 }

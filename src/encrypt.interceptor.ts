@@ -13,21 +13,32 @@ export class EncryptInterceptor implements NestInterceptor {
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
     const req = context.switchToHttp().getRequest();
+    const url = req.url;
+    const isEncrypted = req.headers['is-encrypted'] === 'Y';
 
-    if (req.body?.encrypted) {
+    if (isEncrypted && req.body && req.body.data) {
       try {
-        const decrypted = this.encryptService.decrypt(req.body.encrypted);
+        const decrypted = this.encryptService.decrypt(
+          req.body.data,
+          url,
+          req.method,
+        );
         req.body = JSON.parse(decrypted);
       } catch (err) {
-        console.error('Decryption error:', err);
         req.body = {};
       }
     }
 
     return next.handle().pipe(
       map((data) => {
-        const encrypted = this.encryptService.encrypt(JSON.stringify(data));
-        return { encrypted };
+        if (isEncrypted) {
+          return this.encryptService.encrypt(
+            JSON.stringify(data),
+            url,
+            req.method,
+          );
+        }
+        return data;
       }),
     );
   }

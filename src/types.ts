@@ -1,4 +1,7 @@
 export interface EncryptOptions {
-  key: Buffer;
-  iv: Buffer;
+  key: string;
+  whiteList: {
+    method: string;
+    pathname: string;
+  }[];
 }
