@@ -14,11 +14,17 @@ export class EncryptService {
     ) {
       return data;
     }
-    return crypto.AES.encrypt(data, crypto.enc.Utf8.parse(this.options.key), {
-      iv: crypto.enc.Utf8.parse(this.options.key),
-      padding: crypto.pad.Pkcs7,
-      mode: crypto.mode.CBC,
-    }).toString();
+    const decipher = crypto.AES.decrypt(
+      data,
+      crypto.enc.Utf8.parse(this.options.key),
+      {
+        iv: crypto.enc.Utf8.parse(this.options.key),
+        padding: crypto.pad.Pkcs7,
+        mode: crypto.mode.CBC,
+      },
+    );
+
+    return decipher.toString(crypto.enc.Utf8);
   }
 
   decrypt(data: string, pathname: string, method: string): string {
@@ -30,15 +36,10 @@ export class EncryptService {
       return data;
     }
 
-    const decipher = crypto.AES.decrypt(
-      data,
-      crypto.enc.Utf8.parse(this.options.key),
-      {
-        iv: crypto.enc.Utf8.parse(this.options.key),
-        padding: crypto.pad.Pkcs7,
-        mode: crypto.mode.CBC,
-      },
-    );
-    return decipher.toString(crypto.enc.Utf8);
+    return crypto.AES.encrypt(data, crypto.enc.Utf8.parse(this.options.key), {
+      iv: crypto.enc.Utf8.parse(this.options.key),
+      padding: crypto.pad.Pkcs7,
+      mode: crypto.mode.CBC,
+    }).toString();
   }
 }
