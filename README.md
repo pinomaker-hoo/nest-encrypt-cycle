@@ -24,7 +24,7 @@ npm install nest-encrypt-cycle
 
 ```typescript
 import { Module } from '@nestjs/common';
-import { EncryptModule } from 'pinomaker-nest-encrypt';
+import { EncryptModule } from 'nest-encrypt-cycle';
 
 @Module({
   imports: [EncryptModule.register({ key: 'your-secret-key', whiteList: [] })],
