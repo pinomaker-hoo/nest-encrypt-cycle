@@ -29,12 +29,6 @@ import { APP_INTERCEPTOR } from '@nestjs/core';
 
 @Module({
   imports: [EncryptModule.register({ key: 'your-secret-key', whiteList: [] })],
-  providers: [
-    {
-      provide: APP_INTERCEPTOR,
-      useClass: EncryptInterceptor,
-    },
-  ],
 })
 export class AppModule {}
 ```
@@ -50,24 +44,6 @@ export interface EncryptOptions {
     pathname: string;
   }[];
 }
-```
-
-2. Use the interceptor globally or on specific routes
-
-Globally
-
-```typescript
-import { NestFactory } from '@nestjs/core';
-import { AppModule } from './app.module';
-import { EncryptInterceptor } from 'nest-encrypt-cycle';
-
-async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
-  const encryptService = app.get(EncryptService);
-  app.useGlobalInterceptors(new EncryptInterceptor(encryptService));
-  await app.listen(3000);
-}
-bootstrap();
 ```
 
 ## Configuration

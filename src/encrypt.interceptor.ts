@@ -14,32 +14,58 @@ export class EncryptInterceptor implements NestInterceptor {
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
     const req = context.switchToHttp().getRequest();
     const url = req.url;
+    const method = req.method;
     const isEncrypted = req.headers['is-encrypted'] === 'Y';
 
+    // 요청 단계: 컨트롤러 실행 전
+    this.processRequest(req, url, method, isEncrypted);
+
+    // 응답 단계: 컨트롤러 실행 후
+    return next.handle().pipe(
+      map((data) => {
+        // 이미 암호화된 데이터인지 확인
+        if (data && data.encrypted === true && data.data) {
+          return data;
+        }
+
+        return this.processResponse(data, url, method, isEncrypted);
+      }),
+    );
+  }
+
+  // Request 처리를 위한 메서드 (비동기 처리 전)
+  private processRequest(
+    req: any,
+    url: string,
+    method: string,
+    isEncrypted: boolean,
+  ): void {
     if (isEncrypted && req.body && req.body.data) {
       try {
+        console.log('Decrypting request data');
         const decrypted = this.encryptService.decrypt(
           req.body.data,
           url,
-          req.method,
+          method,
         );
         req.body = JSON.parse(decrypted);
       } catch (err) {
-        req.body = {};
+        console.error('Request decryption failed:', err);
       }
     }
+  }
 
-    return next.handle().pipe(
-      map((data) => {
-        if (isEncrypted) {
-          return this.encryptService.encrypt(
-            JSON.stringify(data),
-            url,
-            req.method,
-          );
-        }
-        return data;
-      }),
-    );
+  // Response 처리를 위한 메서드 (비동기 처리 후)
+  private processResponse(
+    data: any,
+    url: string,
+    method: string,
+    isEncrypted: boolean,
+  ): any {
+    if (isEncrypted) {
+      return this.encryptService.encrypt(JSON.stringify(data), url, method);
+    }
+
+    return data;
   }
 }
