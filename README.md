@@ -1,6 +1,8 @@
-# nest-encrypt
+# nest-encrypt-cycle
 
 A NestJS interceptor that encrypts and decrypts request and response bodies effortlessly.
+
+NPM : https://www.npmjs.com/package/nest-encrypt-cycle
 
 ---
 
