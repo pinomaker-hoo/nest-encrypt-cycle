@@ -24,6 +24,7 @@ export class EncryptService {
   }
 
   decrypt(data: string, pathname: string, method: string): string {
+    // Check whitelist first
     if (
       this.options.whiteList.some(
         (i) => i.pathname === pathname && i.method === method,
@@ -31,17 +32,41 @@ export class EncryptService {
     ) {
       return data;
     }
+    
+    // Strict validation to prevent crypto-js errors
+    if (data === undefined || data === null) {
+      return '';
+    }
+    
+    if (typeof data !== 'string') {
+      return '';
+    }
+    
+    if (data.trim() === '') {
+      return '';
+    }
 
-    const decipher = crypto.AES.decrypt(
-      data,
-      crypto.enc.Utf8.parse(this.options.key),
-      {
-        iv: crypto.enc.Utf8.parse(this.options.key),
-        padding: crypto.pad.Pkcs7,
-        mode: crypto.mode.CBC,
-      },
-    );
+    // Verify data is in valid format before attempting to decrypt
+    try {
+      // Basic validation that the string looks like encrypted data
+      if (!data.includes('/') && !data.includes('+') && !data.includes('=')) {
+        return data; // Return as-is if it doesn't look encrypted
+      }
+      
+      const decipher = crypto.AES.decrypt(
+        data,
+        crypto.enc.Utf8.parse(this.options.key),
+        {
+          iv: crypto.enc.Utf8.parse(this.options.key),
+          padding: crypto.pad.Pkcs7,
+          mode: crypto.mode.CBC,
+        },
+      );
 
-    return decipher.toString(crypto.enc.Utf8);
+      return decipher.toString(crypto.enc.Utf8);
+    } catch (error) {
+      console.error('Decryption failed:', error);
+      return '';
+    }
   }
 }

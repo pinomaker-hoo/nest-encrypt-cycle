@@ -40,18 +40,25 @@ export class EncryptInterceptor implements NestInterceptor {
     method: string,
     isEncrypted: boolean,
   ): void {
-    if (isEncrypted && req.body && req.body.data) {
-      try {
-        console.log('Decrypting request data');
-        const decrypted = this.encryptService.decrypt(
-          req.body.data,
-          url,
-          method,
-        );
+    // Only process encrypted requests with valid data
+    if (!isEncrypted || !req.body || !req.body.data || 
+        (typeof req.body.data === 'string' && req.body.data.trim() === '')) {
+      return; // Skip processing for invalid data
+    }
+
+    try {
+      const decrypted = this.encryptService.decrypt(
+        req.body.data,
+        url,
+        method,
+      );
+      
+      // Only parse if we got a non-empty result
+      if (decrypted && decrypted.trim() !== '') {
         req.body = JSON.parse(decrypted);
-      } catch (err) {
-        console.error('Request decryption failed:', err);
       }
+    } catch (err) {
+      console.error('Request decryption failed:', err);
     }
   }
 
