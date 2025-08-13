@@ -1,4 +1,6 @@
-src/
+# 소스 코드는 제외하되 빌드된 파일은 포함
+/src/
+!/dist/src/
 test/
 *.log
 tsconfig.json

@@ -53,20 +53,26 @@ export class EncryptService {
         return data; // Return as-is if it doesn't look encrypted
       }
       
-      const decipher = crypto.AES.decrypt(
-        data,
-        crypto.enc.Utf8.parse(this.options.key),
-        {
-          iv: crypto.enc.Utf8.parse(this.options.key),
-          padding: crypto.pad.Pkcs7,
-          mode: crypto.mode.CBC,
-        },
-      );
+      try {
+        const decipher = crypto.AES.decrypt(
+          data,
+          crypto.enc.Utf8.parse(this.options.key),
+          {
+            iv: crypto.enc.Utf8.parse(this.options.key),
+            padding: crypto.pad.Pkcs7,
+            mode: crypto.mode.CBC,
+          },
+        );
 
-      return decipher.toString(crypto.enc.Utf8);
+        const decryptedText = decipher.toString(crypto.enc.Utf8);
+        return decryptedText || ''; // 빈 문자열 반환 대신 빈 객체 문자열 반환
+      } catch (cryptoError) {
+        console.error('Crypto operation failed:', cryptoError);
+        return '{}'; // 암호화 오류 시 빈 객체 문자열 반환
+      }
     } catch (error) {
       console.error('Decryption failed:', error);
-      return '';
+      return '{}';
     }
   }
 }

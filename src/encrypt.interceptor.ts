@@ -40,10 +40,21 @@ export class EncryptInterceptor implements NestInterceptor {
     method: string,
     isEncrypted: boolean,
   ): void {
-    // Only process encrypted requests with valid data
-    if (!isEncrypted || !req.body || !req.body.data || 
-        (typeof req.body.data === 'string' && req.body.data.trim() === '')) {
-      return; // Skip processing for invalid data
+    // 암호화되지 않은 요청은 처리하지 않음
+    if (!isEncrypted) {
+      return;
+    }
+
+    // req.body가 없는 경우 빈 객체로 초기화
+    if (!req.body) {
+      req.body = {};
+      return;
+    }
+
+    // req.body.data가 없거나 빈 문자열인 경우 빈 객체로 처리
+    if (!req.body.data || (typeof req.body.data === 'string' && req.body.data.trim() === '')) {
+      req.body = {};
+      return;
     }
 
     try {
@@ -53,12 +64,20 @@ export class EncryptInterceptor implements NestInterceptor {
         method,
       );
       
-      // Only parse if we got a non-empty result
+      // 복호화된 결과가 있으면 파싱
       if (decrypted && decrypted.trim() !== '') {
-        req.body = JSON.parse(decrypted);
+        try {
+          req.body = JSON.parse(decrypted);
+        } catch (parseError) {
+          console.error('JSON parsing failed:', parseError);
+          req.body = {}; // 파싱 실패 시 빈 객체로 설정
+        }
+      } else {
+        req.body = {}; // 복호화 결과가 없으면 빈 객체로 설정
       }
     } catch (err) {
       console.error('Request decryption failed:', err);
+      req.body = {}; // 복호화 실패 시 빈 객체로 설정
     }
   }
 
