@@ -45,25 +45,17 @@ export class EncryptInterceptor implements NestInterceptor {
       return;
     }
 
-    // req.body가 없는 경우 빈 객체로 초기화
-    if (!req.body) {
-      req.body = {};
-      return;
-    }
-
     // req.body.data가 없거나 빈 문자열인 경우 빈 객체로 처리
-    if (!req.body.data || (typeof req.body.data === 'string' && req.body.data.trim() === '')) {
-      req.body = {};
+    if (
+      !req.body.data ||
+      (typeof req.body.data === 'string' && req.body.data.trim() === '')
+    ) {
       return;
     }
 
     try {
-      const decrypted = this.encryptService.decrypt(
-        req.body.data,
-        url,
-        method,
-      );
-      
+      const decrypted = this.encryptService.decrypt(req.body.data, url, method);
+
       // 복호화된 결과가 있으면 파싱
       if (decrypted && decrypted.trim() !== '') {
         try {
