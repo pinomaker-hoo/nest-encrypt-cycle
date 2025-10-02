@@ -13,9 +13,11 @@ export class EncryptInterceptor implements NestInterceptor {
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
     const req = context.switchToHttp().getRequest();
-    const url = req.url;
+    // Fastify와 Express 모두 지원
+    const url = req.url || req.raw?.url;
     const method = req.method;
-    const isEncrypted = req.headers['is-encrypted'] === 'Y';
+    // Fastify는 헤더를 소문자로 변환
+    const isEncrypted = (req.headers['is-encrypted'] || req.headers['is-encrypted']) === 'Y';
 
     // 요청 단계: 컨트롤러 실행 전
     this.processRequest(req, url, method, isEncrypted);
@@ -42,6 +44,12 @@ export class EncryptInterceptor implements NestInterceptor {
   ): void {
     // 암호화되지 않은 요청은 처리하지 않음
     if (!isEncrypted) {
+      return;
+    }
+
+    // body가 없는 경우 처리 (Fastify는 body가 undefined일 수 있음)
+    if (!req.body) {
+      req.body = {};
       return;
     }
 
