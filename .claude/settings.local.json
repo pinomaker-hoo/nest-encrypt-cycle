@@ -1,7 +1,11 @@
 {
   "permissions": {
     "allow": [
-      "Bash(npm run build:*)"
+      "Bash(npm run build:*)",
+      "Bash(node benchmark.js:*)",
+      "Bash(node test-optimized.js:*)",
+      "Bash(node test-query-params.js:*)",
+      "Bash(node test-wildcard.js:*)"
     ],
     "deny": [],
     "ask": []

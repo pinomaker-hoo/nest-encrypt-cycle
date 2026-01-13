@@ -16,11 +16,13 @@ export class EncryptInterceptor implements NestInterceptor {
     // Fastify와 Express 모두 지원
     const url = req.url || req.raw?.url;
     const method = req.method;
+    // Query string 제거 (whitelist 매칭을 위해)
+    const pathname = url.split('?')[0];
     // Fastify는 헤더를 소문자로 변환
     const isEncrypted = (req.headers['is-encrypted'] || req.headers['is-encrypted']) === 'Y';
 
     // 요청 단계: 컨트롤러 실행 전
-    this.processRequest(req, url, method, isEncrypted);
+    this.processRequest(req, pathname, method, isEncrypted);
 
     // 응답 단계: 컨트롤러 실행 후
     return next.handle().pipe(
@@ -30,7 +32,7 @@ export class EncryptInterceptor implements NestInterceptor {
           return data;
         }
 
-        return this.processResponse(data, url, method, isEncrypted);
+        return this.processResponse(data, pathname, method, isEncrypted);
       }),
     );
   }
